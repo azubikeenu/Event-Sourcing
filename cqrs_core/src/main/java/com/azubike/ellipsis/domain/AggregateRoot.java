@@ -58,6 +58,7 @@ public class AggregateRoot {
             // do not reapply changes to the event because these changes have already been applied
             // this allows the changes , not to be added to the list of uncommitted changes
             applyChange(event, false);
+            System.out.printf("Event : %s\n", event);
         }
     }
 }

@@ -1,7 +1,9 @@
 package com.azubike.ellipsis.api.controllers;
 
+import com.azubike.ellipsis.api.commands.CloseAccountCommand;
 import com.azubike.ellipsis.api.commands.DepositFundsCommand;
 import com.azubike.ellipsis.api.commands.OpenAccountCommand;
+import com.azubike.ellipsis.api.commands.WithdrawFundsCommand;
 import com.azubike.ellipsis.api.dto.OpenAccountResponse;
 import com.azubike.ellipsis.dto.BaseResponse;
 import com.azubike.ellipsis.exceptions.AggregateNotFoundException;
@@ -48,20 +50,54 @@ public class AccountController {
 
 
     @PutMapping("/deposit-funds/{id}")
-    ResponseEntity<BaseResponse> depositFunds(@RequestBody DepositFundsCommand command , @PathVariable("id") String id) {
-         try {
-               command.setId(id);
-               commandDispatcher.send(command);
-             return ResponseEntity.status(HttpStatus.OK).body( BaseResponse.builder()
-                     .message(String.format("Account %s successfully funded with amount %s", id, command.getAmount()))
-                     .build());
+    ResponseEntity<BaseResponse> depositFunds(@RequestBody DepositFundsCommand command, @PathVariable("id") String id) {
+        try {
+            command.setId(id);
+            commandDispatcher.send(command);
+            return ResponseEntity.status(HttpStatus.OK).body(BaseResponse.builder()
+                    .message(String.format("Account %s successfully funded with amount %s", id, command.getAmount()))
+                    .build());
 
-         }catch(IllegalStateException | AggregateNotFoundException ex){
-              log.warn("DepositFunds Client response error {}", ex.getMessage());
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BaseResponse.builder().message(ex.getMessage()).build());
-         }catch(Exception ex){
-             log.error("Something wrong happened while Depositing Funds {}", ex.getMessage());
-             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(BaseResponse.builder().message(ex.getMessage()).build());
-         }
+        } catch (IllegalStateException | AggregateNotFoundException ex) {
+            log.warn("DepositFunds Client response error {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BaseResponse.builder().message(ex.getMessage()).build());
+        } catch (Exception ex) {
+            log.error("Something wrong happened while Depositing Funds {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(BaseResponse.builder().message(ex.getMessage()).build());
+        }
+    }
+
+    @PutMapping("/withdraw-funds/{id}")
+    ResponseEntity<BaseResponse> withdrawFunds(@RequestBody WithdrawFundsCommand command, @PathVariable("id") String id) {
+        try {
+            command.setId(id);
+            commandDispatcher.send(command);
+            return ResponseEntity.status(HttpStatus.OK).body(BaseResponse.builder()
+                    .message(String.format("Account %s successfully debited with amount %s", id, command.getAmount()))
+                    .build());
+
+        } catch (IllegalStateException | AggregateNotFoundException ex) {
+            log.warn("Withdraw Client response error {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BaseResponse.builder().message(ex.getMessage()).build());
+        } catch (Exception ex) {
+            log.error("Something wrong happened while withdrawing funds {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(BaseResponse.builder().message(ex.getMessage()).build());
+        }
+    }
+
+    @DeleteMapping("/close-account/{id}")
+    ResponseEntity<BaseResponse> closeAccount(@PathVariable("id") String id, @RequestBody CloseAccountCommand command) {
+        try {
+            command.setId(id);
+            commandDispatcher.send(command);
+            return ResponseEntity.status(HttpStatus.OK).body(BaseResponse.builder().message(String.format("Account with %s successfully deleted", id)).build());
+        } catch (IllegalStateException | AggregateNotFoundException ex) {
+            log.warn("Delete Client response error {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BaseResponse.builder().message(ex.getMessage()).build());
+
+        } catch (Exception ex) {
+            log.error("Something wrong happened while deleting funds {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(BaseResponse.builder().message(ex.getMessage()).build());
+        }
     }
 }
